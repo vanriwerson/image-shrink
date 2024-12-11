@@ -1,0 +1,14 @@
+{
+  "name": "image-shrink",
+  "version": "1.0.0",
+  "description": "App to optimize images",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "Bruno Riwerson",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^33.2.1"
+  }
+}
