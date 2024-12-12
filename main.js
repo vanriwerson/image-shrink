@@ -37,14 +37,7 @@ app.on('ready', () => {
 const menu = [
   ...(isMac ? [{ role: 'appMenu' }] : []),
   {
-    label: 'File',
-    submenu: [
-      {
-        accelerator: 'CmdOrCtrl+W', // Para funcionar em todas as plataformas
-        click: () => app.quit(),
-        label: 'Quit'
-      }
-    ]
+    role: 'fileMenu',
   }
 ]
 
