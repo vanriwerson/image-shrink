@@ -38,7 +38,18 @@ const menu = [
   ...(isMac ? [{ role: 'appMenu' }] : []),
   {
     role: 'fileMenu',
-  }
+  },
+  ...(isDev ? [
+    {
+      label: 'Developer',
+      submenu: [
+        { role: 'reload' },
+        { role: 'forcereload' },
+        { role: 'separator' },
+        { role: 'toggledevtools' }
+      ]
+    }
+  ] : [])
 ]
 
 app.on('window-all-closed', () => {
