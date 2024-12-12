@@ -1,13 +1,13 @@
-const { app, BrowserWindow, Menu, globalShortcut } = require('electron')
+const { app, BrowserWindow, Menu } = require('electron');
 
 // Set env
-process.env.NODE_ENV = 'development'
+process.env.NODE_ENV = 'development';
 
-const isDev = process.env.NODE_ENV !== 'production' ? true : false
-const isMac = process.platform === 'darwin' ? true : false
+const isDev = process.env.NODE_ENV !== 'production' ? true : false;
+const isMac = process.platform === 'darwin' ? true : false;
 
-
-let mainWindow
+let mainWindow;
+let aboutWindow;
 
 function createMainWindow() {
   mainWindow = new BrowserWindow({
@@ -15,47 +15,83 @@ function createMainWindow() {
     icon: `${__dirname}/assets/icons/Icon_256x256.png`, // utilizar caminho absoluto para o ícone
     resizable: isDev,
     title: 'ImageShrink',
-    width: 500
-  })
+    width: 500,
+  });
 
   // mainWindow.loadURL(`file://${__dirname}/app/index.html`) // carrega o index.html mas precisa da informação do protocolo 'file://'
-  mainWindow.loadFile(`${__dirname}/app/index.html`) // carrega o index.html diretamente
+  mainWindow.loadFile(`${__dirname}/app/index.html`); // carrega o index.html diretamente
+}
+
+function createAboutWindow() {
+  aboutWindow = new BrowserWindow({
+    backgroundColor: 'white',
+    height: 300,
+    icon: `${__dirname}/assets/icons/Icon_256x256.png`, // utilizar caminho absoluto para o ícone
+    resizable: false,
+    title: 'About ImageShrink',
+    width: 300,
+  });
+
+  aboutWindow.loadFile(`${__dirname}/app/about.html`);
 }
 
 app.on('ready', () => {
-  createMainWindow()
+  createMainWindow();
 
-  const mainMenu = Menu.buildFromTemplate(menu)
-  Menu.setApplicationMenu(mainMenu)
-
-  globalShortcut.register('CmdOrCtrl+R', () => mainWindow.reload())
-  globalShortcut.register(isMac ? 'Command+Alt+I' : 'Ctrl+Shift+I', () => mainWindow.toggleDevTools())
-
-  mainWindow.on('closed', () => mainWindow = null)
-})
+  const mainMenu = Menu.buildFromTemplate(menu);
+  Menu.setApplicationMenu(mainMenu);
+  mainWindow.on('closed', () => (mainWindow = null));
+});
 
 const menu = [
-  ...(isMac ? [{ role: 'appMenu' }] : []),
+  ...(isMac
+    ? [
+        {
+          label: app.name,
+          submenu: [
+            {
+              click: createAboutWindow,
+              label: 'About',
+            },
+          ],
+        },
+      ]
+    : []),
   {
     role: 'fileMenu',
   },
-  ...(isDev ? [
-    {
-      label: 'Developer',
-      submenu: [
-        { role: 'reload' },
-        { role: 'forcereload' },
-        { role: 'separator' },
-        { role: 'toggledevtools' }
+  ...(!isMac
+    ? [
+        {
+          label: 'Help',
+          submenu: [
+            {
+              click: createAboutWindow,
+              label: 'About',
+            },
+          ],
+        },
       ]
-    }
-  ] : [])
-]
+    : []),
+  ...(isDev
+    ? [
+        {
+          label: 'Developer',
+          submenu: [
+            { role: 'reload' },
+            { role: 'forcereload' },
+            { role: 'separator' },
+            { role: 'toggledevtools' },
+          ],
+        },
+      ]
+    : []),
+];
 
 app.on('window-all-closed', () => {
-  if (!isMac) app.quit()
-})
+  if (!isMac) app.quit();
+});
 
 app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) createMainWindow()
-})
+  if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
+});
