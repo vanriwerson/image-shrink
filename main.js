@@ -1,5 +1,6 @@
-const { app, BrowserWindow, Menu, ipcMain, dialog } = require('electron');
 const path = require('path')
+const os = require('os')
+const { app, BrowserWindow, Menu, ipcMain, dialog, shell } = require('electron');
 
 // Set env
 process.env.NODE_ENV = 'development';
@@ -111,9 +112,34 @@ const menu = [
 ];
 
 ipcMain.on('image:minimize', (e, options) => {
-  console.log(options);
-  
+  options.dest = path.join(os.homedir(), 'imageshrink')
+  shrinkImage(options);
 })
+
+// Uso do import dinâmico para o imagemin e slash
+async function shrinkImage({ imgPath, quality, dest }) {
+  const imagemin = ((await import('imagemin')).default)
+  const imageminMozjpeg = (await import('imagemin-mozjpeg')).default
+  const imageminPngquant = (await import('imagemin-pngquant')).default
+  const slash = (await import('slash')).default
+  
+  try {
+    const pngQuality = quality / 100
+
+    const files = await imagemin([slash(imgPath)], {
+      destination: dest,
+      plugins: [
+        imageminMozjpeg({ quality }),
+        imageminPngquant({ quality: [pngQuality, pngQuality]})
+      ]
+    })
+
+    console.log(files)
+    shell.openPath(dest)
+  } catch (error) {
+    console.log(error);
+  }
+}
 
 app.on('window-all-closed', () => {
   if (!isMac) app.quit();
