@@ -15,8 +15,14 @@ function createMainWindow() {
     icon: `${__dirname}/assets/icons/Icon_256x256.png`, // utilizar caminho absoluto para o ícone
     resizable: isDev,
     title: 'ImageShrink',
-    width: 500,
+    webPreferences: {
+      contextIsolation: false,
+      nodeIntegration: true,
+    },
+    width: isDev ? 1080 : 500,
   });
+
+  if(isDev) mainWindow.webContents.openDevTools()
 
   // mainWindow.loadURL(`file://${__dirname}/app/index.html`) // carrega o index.html mas precisa da informação do protocolo 'file://'
   mainWindow.loadFile(`${__dirname}/app/index.html`); // carrega o index.html diretamente
