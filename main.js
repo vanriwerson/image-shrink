@@ -1,4 +1,5 @@
-const { app, BrowserWindow, Menu } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, dialog } = require('electron');
+const path = require('path')
 
 // Set env
 process.env.NODE_ENV = 'development';
@@ -27,6 +28,21 @@ function createMainWindow() {
   // mainWindow.loadURL(`file://${__dirname}/app/index.html`) // carrega o index.html mas precisa da informação do protocolo 'file://'
   mainWindow.loadFile(`${__dirname}/app/index.html`); // carrega o index.html diretamente
 }
+
+// Manipulador para abrir o dialog e retornar o caminho do arquivo
+ipcMain.handle('open-file-dialog', async () => {
+  const { canceled, filePaths } = await dialog.showOpenDialog({
+    properties: ['openFile'],
+    filters: [{ name: 'Images', extensions: ['jpg', 'png', 'jpeg', 'gif'] }]
+  });
+
+  if (canceled) return null; // Retorna null se o usuário cancelar
+  
+  const filePath = filePaths[0]; // Caminho completo do arquivo selecionado
+  const fileName = path.basename(filePath); // Nome do arquivo (com extensão)
+
+  return { filePath, fileName }
+});
 
 function createAboutWindow() {
   aboutWindow = new BrowserWindow({
@@ -93,6 +109,11 @@ const menu = [
       ]
     : []),
 ];
+
+ipcMain.on('image:minimize', (e, options) => {
+  console.log(options);
+  
+})
 
 app.on('window-all-closed', () => {
   if (!isMac) app.quit();
