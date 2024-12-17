@@ -1,15 +1,16 @@
 const path = require('path')
 const os = require('os')
-const { app, BrowserWindow, Menu, ipcMain, dialog, shell } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, dialog, shell } = require('electron')
+const log = require('electron-log')
 
 // Set env
-process.env.NODE_ENV = 'development';
+process.env.NODE_ENV = 'development'
 
-const isDev = process.env.NODE_ENV !== 'production' ? true : false;
-const isMac = process.platform === 'darwin' ? true : false;
+const isDev = process.env.NODE_ENV !== 'production' ? true : false
+const isMac = process.platform === 'darwin' ? true : false
 
-let mainWindow;
-let aboutWindow;
+let mainWindow
+let aboutWindow
 
 function createMainWindow() {
   mainWindow = new BrowserWindow({
@@ -22,12 +23,12 @@ function createMainWindow() {
       nodeIntegration: true,
     },
     width: isDev ? 1080 : 500,
-  });
+  })
 
   if(isDev) mainWindow.webContents.openDevTools()
 
   // mainWindow.loadURL(`file://${__dirname}/app/index.html`) // carrega o index.html mas precisa da informação do protocolo 'file://'
-  mainWindow.loadFile(`${__dirname}/app/index.html`); // carrega o index.html diretamente
+  mainWindow.loadFile(`${__dirname}/app/index.html`) // carrega o index.html diretamente
 }
 
 // Manipulador para abrir o dialog e retornar o caminho do arquivo
@@ -35,15 +36,15 @@ ipcMain.handle('open-file-dialog', async () => {
   const { canceled, filePaths } = await dialog.showOpenDialog({
     properties: ['openFile'],
     filters: [{ name: 'Images', extensions: ['jpg', 'png', 'jpeg', 'gif'] }]
-  });
+  })
 
-  if (canceled) return null; // Retorna null se o usuário cancelar
+  if (canceled) return null // Retorna null se o usuário cancelar
   
-  const filePath = filePaths[0]; // Caminho completo do arquivo selecionado
-  const fileName = path.basename(filePath); // Nome do arquivo (com extensão)
+  const filePath = filePaths[0] // Caminho completo do arquivo selecionado
+  const fileName = path.basename(filePath) // Nome do arquivo (com extensão)
 
   return { filePath, fileName }
-});
+})
 
 function createAboutWindow() {
   aboutWindow = new BrowserWindow({
@@ -53,18 +54,18 @@ function createAboutWindow() {
     resizable: false,
     title: 'About ImageShrink',
     width: 300,
-  });
+  })
 
-  aboutWindow.loadFile(`${__dirname}/app/about.html`);
+  aboutWindow.loadFile(`${__dirname}/app/about.html`)
 }
 
 app.on('ready', () => {
-  createMainWindow();
+  createMainWindow()
 
-  const mainMenu = Menu.buildFromTemplate(menu);
-  Menu.setApplicationMenu(mainMenu);
-  mainWindow.on('closed', () => (mainWindow = null));
-});
+  const mainMenu = Menu.buildFromTemplate(menu)
+  Menu.setApplicationMenu(mainMenu)
+  mainWindow.on('closed', () => (mainWindow = null))
+})
 
 const menu = [
   ...(isMac
@@ -109,11 +110,11 @@ const menu = [
         },
       ]
     : []),
-];
+]
 
 ipcMain.on('image:minimize', (e, options) => {
   options.dest = path.join(os.homedir(), 'imageshrink')
-  shrinkImage(options);
+  shrinkImage(options)
 })
 
 // Uso do import dinâmico para o imagemin e slash
@@ -134,20 +135,20 @@ async function shrinkImage({ imgPath, quality, dest }) {
       ]
     })
 
-    console.log(files)
+    log.info(files)
     
     shell.openPath(dest)
 
     mainWindow.webContents.send('image:done')
   } catch (error) {
-    console.log(error);
+    log.error(error)
   }
 }
 
 app.on('window-all-closed', () => {
-  if (!isMac) app.quit();
-});
+  if (!isMac) app.quit()
+})
 
 app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
-});
+  if (BrowserWindow.getAllWindows().length === 0) createMainWindow()
+})
